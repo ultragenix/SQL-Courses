@@ -100,8 +100,8 @@ terminal et taper des commandes.
 
 ```bash
 # 1. Cloner le dépôt
-git clone https://github.com/<ton-compte>/cours-sql.git
-cd cours-sql
+git clone https://github.com/ultragenix/SQL-Courses.git
+cd SQL-Courses
 
 # 2. Démarrer PostgreSQL 17
 #    Au premier démarrage, le dataset et les outils de vérification

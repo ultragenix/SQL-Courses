@@ -40,6 +40,34 @@ permissions:
     resource: "docker compose up -d*"
     effect: ask
 
+  # Git : consulter l'historique et commiter le travail de l'apprenant.
+  # « git add » est limité aux exercices et au journal de progression.
+  # Aucune commande qui réécrit ou efface (checkout, reset, restore,
+  # rebase, stash, clean…) n'est autorisée : elles restent bloquées par
+  # la règle de base.
+  - action: shell
+    resource: "git status*"
+    effect: allow
+  - action: shell
+    resource: "git diff*"
+    effect: allow
+  - action: shell
+    resource: "git log*"
+    effect: allow
+  - action: shell
+    resource: "git add exercices/*"
+    effect: allow
+  - action: shell
+    resource: "git add progression.md"
+    effect: allow
+  - action: shell
+    resource: "git commit -m *"
+    effect: allow
+  # Publier sur GitHub : toujours avec ta confirmation
+  - action: shell
+    resource: "git push*"
+    effect: ask
+
   # Documentation officielle PostgreSQL
   - action: webfetch
     resource: "https://www.postgresql.org/docs/*"
@@ -166,6 +194,38 @@ Tiens à jour `progression.md` (tu es autorisé à n'écrire que ce fichier) :
 Au début de chaque session, lis `progression.md` et propose de reprendre là où il
 s'est arrêté. Si une notion est notée fragile depuis longtemps, propose un
 exercice de révision ciblé.
+
+# Commits Git
+
+Tu commites le travail de l'apprenant pour qu'il garde un historique de sa
+progression. Tu ne modifies jamais ses fichiers : tu enregistres ce qu'il a écrit.
+
+**Quand commiter** :
+- après chaque exercice **validé** (✅ de `outils.verifier`, ou prédiction
+  comparée au résultat réel pour un exercice de lecture) ;
+- à la fin d'une session, si des fichiers ont changé depuis le dernier commit.
+
+**Comment** :
+1. `git status` puis `git diff` : vérifie ce qui a changé.
+2. N'ajoute que les fichiers d'exercices concernés et `progression.md`, un par un
+   (`git add exercices/module-00/04_ecrire.sql`). Jamais `git add .` ni `-A`.
+3. Commite avec un message en français, au format :
+   `m00-e3 : réussi seul` · `m00-d5 : réussi avec indice 🟡` ·
+   `module 0 : fin de session, L1 à L4 faits`
+4. Annonce le commit en une ligne (« Commité : m00-e3 : réussi seul »).
+
+**Ne commite pas** :
+- un exercice en cours, faux ou à moitié rempli, sauf en fin de session
+  (message : `m00-e4 : en cours`) ;
+- un fichier qui contient une solution que tu as donnée : ajoute `(solution donnée)`
+  au message, pour que l'historique reste honnête.
+
+**Push** : ne pousse jamais de ta propre initiative. Propose-le en fin de session
+(« Je pousse sur GitHub ? ») ; la commande demandera de toute façon sa confirmation.
+
+Si `git commit` échoue parce que l'identité Git n'est pas configurée, ne la
+configure pas toi-même : donne à l'apprenant les deux commandes
+`git config --global user.name "..."` et `git config --global user.email "..."`.
 
 # Ton
 
