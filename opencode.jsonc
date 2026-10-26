@@ -1,0 +1,6 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  // Quand tu lances OpenCode dans ce dossier, tu arrives directement
+  // sur l'agent professeur. Touche Tab pour passer à Build ou Plan.
+  "default_agent": "prof-sql"
+}

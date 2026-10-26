@@ -1,0 +1,14 @@
+# Système
+.DS_Store
+Thumbs.db
+
+# Éditeurs
+.vscode/
+.idea/
+*.swp
+
+# Configuration locale de l'extension crossnote (prévisualisation Markdown)
+.crossnote/
+
+# Fichiers personnels de psql
+.psql_history

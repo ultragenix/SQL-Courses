@@ -1,0 +1,37 @@
+# Cours SQL — PostgreSQL 17
+#
+# Démarrer      : docker compose up -d
+# Se connecter  : docker compose exec db psql -U eleve -d cours_sql
+# Tout réinitialiser (efface les données et relance les scripts d'init) :
+#                 docker compose down -v && docker compose up -d
+
+services:
+  db:
+    image: postgres:17
+    container_name: cours-sql-db
+    environment:
+      POSTGRES_USER: eleve
+      POSTGRES_PASSWORD: eleve
+      POSTGRES_DB: cours_sql
+      TZ: Indian/Reunion
+      PGTZ: Indian/Reunion
+    ports:
+      # Port 5433 côté machine pour ne pas entrer en conflit avec un PostgreSQL
+      # déjà installé sur 5432. Depuis un client (DBeaver, VS Code) : localhost:5433
+      - "5433:5432"
+    volumes:
+      # Les fichiers .sql de ce dossier sont exécutés par ordre alphabétique
+      # au PREMIER démarrage uniquement (quand le volume pgdata est vide).
+      - ./data/init:/docker-entrypoint-initdb.d:ro
+      # Dossier des exercices monté dans le conteneur : permet d'exécuter
+      # un fichier avec  \i /exercices/module-00/02_lire.sql  depuis psql
+      - ./exercices:/exercices:ro
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U eleve -d cours_sql"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  pgdata:
