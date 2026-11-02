@@ -83,8 +83,8 @@ ignore les NULL.
 - `01_explorer.sql` : Q1 à Q9 validées. Aides : 🟡 sur Q3, Q5, Q7.
   Commit `0151734`.
 - Drill : trois requêtes de contrôle qualité écrites seul, justes.
-- Point d'arrêt : mise au propre du 01 en attente (section de synthèse en fin de
-  fichier), puis `02_lire_predire.sql`.
+- Point d'arrêt : mise au propre du 01 **faite** le 02/11 (section « MISE AU PROPRE »
+  en fin de `01_explorer.sql`, 8 points de synthèse), puis `02_lire_predire.sql`.
 - Prochaine session : `02_lire_predire.sql`, prédiction écrite avant exécution.
   Puis `03_deboguer.sql`. Si le temps le permet, revoir NULL vs `''` vs `0` en écriture.
 

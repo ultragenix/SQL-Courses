@@ -79,3 +79,79 @@ WHERE client_id >= 116 AND client_id <= 120;
 -- categorie_parent_id pointe vers lui meme car on as des parents de catégorie qui regroupe des 
 --  sous catégorie par exemple la catégorie 2,3 et 4 ou le meme parents qui est la catégorie 1
 -- c'est une jointures qui se relie a elle meme dans l'arboressence
+
+-- =============================================================================
+-- MISE AU PROPRE — synthèse de l'exercice 01
+-- (version relue et corrigée des réponses ci-dessus, à garder comme référence)
+-- =============================================================================
+
+-- 1) psql : voir ce que l'écran cache
+--    - \pset null '[NULL]'  rend les NULL visibles (jamais 0 : 0 est une valeur).
+--    - \timing on           affiche la durée de chaque requête.
+--    - \dt                   liste les tables des schémas du search_path (boutique, public) ;
+--                            la colonne Schema donne l'origine de chaque table.
+--    - \d table              décrit les colonnes, les NULL autorisés, les clés.
+--    - \h SELECT             affiche la syntaxe officielle d'une commande.
+--    - \x                     bascule l'affichage en mode « une colonne par ligne » (lisible
+--                            quand la table est large).
+
+-- 2) Objets et résolution des noms
+--    - Une base contient des schémas ; un schéma contient des tables.
+--      « boutique » est un schéma, pas une table.
+--    - search_path = boutique, public : un nom non qualifié (clients) est cherché
+--      d'abord dans boutique, puis dans public.
+--    - Écrire boutique.clients lève toute ambiguïté (notation schéma.objet).
+
+-- 3) NULL : une absence de valeur, pas une valeur
+--    - magasin_id NULL dans commandes   = commande passée en ligne (pas de magasin).
+--    - frais_livraison NULL             = achat en magasin (aucune livraison à facturer).
+--    - frais_livraison = 0              = commande en ligne avec livraison offerte : ce n'est
+--                                         PAS un NULL, c'est un vrai zéro.
+--    - NULL n'est jamais égal à rien : on le teste avec IS NULL / IS NOT NULL, pas avec =.
+--    - '' (chaîne vide) est une valeur présente, donc différente de NULL.
+
+-- 4) Clés et grain
+--    - Chaque table a une clé primaire (Primary Key, PK) : une colonne qui identifie
+--      une ligne de façon unique.
+--    - Une clé étrangère (Foreign Key, FK) pointe vers la PK d'une autre table.
+--      lignes_commande : PK = ligne_id ; FK = commande_id → commandes, produit_id → produits.
+--    - Le grain, c'est « à quoi correspond une ligne » :
+--        magasins         une ligne = un magasin
+--        clients          une ligne = un client
+--        categories       une ligne = une catégorie (categorie_parent_id NULL = catégorie racine)
+--        produits         une ligne = un produit
+--        commandes        une ligne = l'en-tête d'une commande (qui, où, quand, statut)
+--        lignes_commande  une ligne = un produit dans une commande
+--    - Conséquence : une commande peut avoir plusieurs lignes de commande, donc
+--      lignes_commande est plus volumineuse que commandes (3751 contre 1500).
+--      Compter les lignes d'une table ne dit rien du nombre de commandes.
+
+-- 5) Arborescence des catégories
+--    - categories.categorie_parent_id est une FK auto-référente : elle pointe vers
+--      categories.categorie_id. Une catégorie peut donc avoir un parent, et NULL
+--      signifie « catégorie racine ».
+--    - Pour parcourir cette hiérarchie, il faudra une jointure de categories sur
+--      elle-même (ou une CTE récursive plus tard).
+
+-- 6) Données réelles : les anomalies ne se voient pas toujours à l'œil nu
+--    Sur les clients 116 à 120 :
+--      - 116 : prénom écrit 'jean' alors que les autres sont capitalisés → problème de casse.
+--      - 118 et 119 : même personne en double, avec l'email écrit différemment → doublon.
+--      - 119 : espace en fin d'email → invisible sans length() ou btrim().
+--      - 120 : email = '' (chaîne vide) et non NULL → email présent mais inutilisable.
+--    Méthode : encadrer les valeurs (par exemple '[' || email || ']'), mesurer
+--    length(), comparer email <> btrim(email). Ce qui est NULL doit être traité
+--    comme une information manquante, pas comme une faute de saisie.
+
+-- 7) Ordre d'écriture des clauses (rappel de \h SELECT)
+--    SELECT … FROM … WHERE … GROUP BY … HAVING … WINDOW …
+--    UNION / INTERSECT / EXCEPT …
+--    ORDER BY … LIMIT … OFFSET … FETCH … FOR …
+--    Cet ordre est celui de l'écriture ; l'ordre d'exécution, lui, est différent
+--    (FROM → WHERE → GROUP BY → HAVING → SELECT → DISTINCT → ORDER BY → LIMIT).
+--    C'est cet ordre d'exécution qu'on suit pour lire une requête.
+
+-- 8) La question réflexe, à poser à chaque étape
+--    « À cette étape, une ligne = quoi ? »
+--    Elle permet de savoir si le résultat est au bon grain avant d'ajouter une
+--    clause, et d'éviter les doublons et les comptes faux.
