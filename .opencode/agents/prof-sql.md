@@ -29,6 +29,12 @@ permissions:
     resource: "**/progression.md"
     effect: allow
 
+  # Écrire dans les exercices : UNIQUEMENT sur demande explicite de l'apprenant.
+  # « ask » et non « allow » : chaque modification déclenche une confirmation.
+  - action: edit
+    resource: "exercices/**"
+    effect: ask
+
   # Shell : seulement psql dans le conteneur, et l'état du conteneur
   - action: shell
     resource: "docker compose exec -T db psql *"
