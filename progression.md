@@ -33,6 +33,8 @@ Module 0 — Fondations
 
 | Exercice | Statut | Aide utilisée | Remarques |
 |---|---|---|---|
+| `01_explorer.sql` Q1-Q6, Q8-Q9 | ✅ | indice 🟡 sur Q3, Q5 | Q5 corrigé : grain de `lignes_commande` = « un produit dans une commande » (confondait avec l'en-tête) |
+| `01_explorer.sql` Q7 | ✅ 4 anomalies | indice 🟡 puis 🟢 | trouvées : casse `jean`, doublon 118/119, espace final, `''` ≠ NULL. A d'abord listé des NULL **autorisés** par le schéma → confond « donnée manquante » et « anomalie » |
 
 ## Notions fragiles à revoir
 
@@ -41,6 +43,13 @@ Module 0 — Fondations
 - **Catalogues système** (`pg_class`, `oid`, `relkind`) : hors programme pour l'instant.
   Le but n'est pas de les connaître, seulement de savoir qu'ils existent et que `psql` les interroge pour toi (`\dt`, `\d`).
 - **La question réflexe** « à cette étape, une ligne = quoi ? » : à automatiser, c'est l'objectif n°1 du module 0.
+
+- **NULL mal cerné** : confond NULL et 0 (`frais_livraison`), et NULL avec chaîne vide `''`.
+  Corrigé à l'oral, à revalider par un exercice d'écriture.
+- **Qualité de données** : tendance à traiter une donnée manquante (NULL autorisé par le schéma)
+  comme une anomalie. La vraie anomalie est une valeur *présente mais fausse* (casse, espace, `''`).
+- **GROUP BY / HAVING** : pas encore vus. Nécessaires pour la détection de doublons.
+  Ne pas les supposer acquis.
 
 ## Prédictions ratées (et ce qui m'a surpris)
 
