@@ -34,8 +34,8 @@ Module 0 — Fondations
 | Exercice | Statut | Aide utilisée | Remarques |
 |---|---|---|---|
 | `01_explorer.sql` | ✅ Q1 à Q9 | indices 🟡 sur Q3, Q5, Q7 | commit `0151734`. Q5 : le grain de `lignes_commande` confondu avec l'en-tête de commande → corrigé. Q7 : a d'abord listé des NULL **autorisés** par le schéma au lieu des vraies anomalies |
-| `02_lire_predire.sql` | à faire | — | prochain. Prédiction écrite **avant** exécution, non négociable |
-| `03_deboguer.sql` | à faire | — | |
+| `02_lire_predire.sql` | ✅ L1 à L7 | indices 🟡 sur L3 (NULL), L5 (grain), L7 (tri texte) | prédictions écrites avant exécution. Erreurs de raisonnement corrigées : division entière vs PEMDAS (L2), `<> NULL` (L3), `IS NOT NULL` inversé (L3), NULL en tête du `DESC` (L4), grain du `GROUP BY` (L6), `sum()` et les NULL (L6), tri texte `'P-36' < 'P-4'` (L7), produit 39 absent de la CTE (L7) |
+| `03_deboguer.sql` | à faire | — | prochain |
 | `04_ecrire.sql` | à faire | — | |
 | `05_reecrire.sql` | à faire | — | |
 
@@ -71,7 +71,43 @@ ignore les NULL.
 - **Q3 (02/11)** — explication initiale de `frais_livraison` ambiguë (« correspond à un achat
   en magasin ») : décrivait le sens de la colonne, pas celui du NULL.
 
+### Session 2 — prédictions (02/11)
+
+- **L1** : fourchette ~10 vs 7, correcte. Bonus raté : croyait le tri des ex æquo alphabétique ;
+  contredit par son propre résultat (`'Café' < 'Panier'` mais Panier sort avant). Notion acquise :
+  l'ordre des ex æquo n'est pas garanti, il faut un critère secondaire (`prix_double, nom`).
+- **L2** : 5/5 juste. Explication fausse au départ : croyait que SQL ne respecte pas PEMDAS.
+  En réalité `/` et `*` sont au même niveau (gauche → droite) ; c'est la division **entière**
+  qui tronque vers zéro (`-7/2 = -3`, pas `-4`).
+- **L3** : `= NULL` → 0 compris. Mais a écrit `IS NOT NULL` pour compter les clients « sans email »
+  (inversion), puis croyait 5 emails vides (en réalité 1). `'' <> NULL` vaut NULL, pas TRUE.
+- **L4** : a bien vu que les 3 lignes sont des marges NULL. Avait prédit les 3 vraies meilleures
+  marges (48 / 35 / 27) → intuition métier juste, la requête ne répond pas à cette question.
+  Notion : `NULLS FIRST` par défaut en DESC, `NULLS LAST` en ASC (PostgreSQL ; MySQL/SQLite/SQL Server inversent).
+- **L5** : raisonnement `a > b` juste, chiffres inventés (40/20 au lieu de 119/118). A compris
+  `count(*)` vs `count(DISTINCT …)` ; a trouvé seule la commande 42 (deux lignes du produit 24)
+  en écrivant `GROUP BY`/`HAVING` sans les avoir vus.
+- **L6** : a prédit 5 statuts, en a obtenu 4 (`en_attente` = 16 lignes, éliminé par `HAVING > 20`).
+  Objectif de volume non déduit du `HAVING`. A cru que `sum()` comptait les NULL comme 0 ;
+  corrigé via `avg` (1185/235 ≠ 1185/260). Tri des ex æquo (trois statuts à 33) non garanti.
+- **L7** : a compris le grain de la CTE. N'a pas vu que `reference` est du **texte** :
+  `'P-36' < 'P-4'` (comparaison caractère par caractère). Produit 39 : a d'abord répondu par le
+  seuil, alors qu'il est absent de la CTE (zéro vente) — distinction `WHERE` (ligne filtrée) vs
+  `JOIN` (ligne inexistante).
+
+
 ## Journal des sessions
+
+### 2026-11-02 — session 2 : lecture / prédiction
+
+- `02_lire_predire.sql` : L1 à L7 faites, prédictions écrites avant exécution.
+  Aides 🟡 sur L3, L5, L7 ; le reste en autonomie.
+- Progrès marquant : a écrit seule `GROUP BY` / `HAVING` en L5 pour trouver la commande 42,
+  avant même d'avoir vu L6.
+- Fragilités confirmées : distinction NULL / `''` / `0` (L3), volume d'un `HAVING` (L6),
+  `sum()` et les NULL (L6), tri **texte** vs tri numérique (L7).
+- Prochaine session : `03_deboguer.sql`, puis `04_ecrire.sql` et `05_reecrire.sql`.
+  Révision ciblée : `GROUP BY` / `HAVING` / agrégats et NULL (à refaire en écriture seule).
 
 ### 2026-11-02 — session 1 : module 0, exploration
 
@@ -87,6 +123,8 @@ ignore les NULL.
   en fin de `01_explorer.sql`, 8 points de synthèse), puis `02_lire_predire.sql`.
 - Prochaine session : `02_lire_predire.sql`, prédiction écrite avant exécution.
   Puis `03_deboguer.sql`. Si le temps le permet, revoir NULL vs `''` vs `0` en écriture.
+- Hors SQL : remote `origin` repassé de HTTPS à SSH le 02/11, push OK.
+  Réflexe à garder : `git remote -v` avant de soupçonner les clés.
 
 ### 2026-10-27 — session 0 : mise en route
 
